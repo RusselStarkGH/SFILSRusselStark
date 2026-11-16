@@ -16,3 +16,5 @@ LINES TERMINATED BY '\r\n'
 IGNORE 1 ROWS;
 
 The reason running the wizard first is mandatory is so it handles the table creation, making and assigning the rows, columns, and attributes for you. It's just a faster method than doing it manually.
+
+We are now ready to move on to the normalization process, which I will detail in scripts.
