@@ -1,1 +1,112 @@
 First Normalization Form:
+For 1NF, it requires four things (Taken from GeeksForGeeks) -
+
+1) All columns contain atomic values - Yes, they all contain single values already
+2) Each row is unique - No, they have no patron ID's due to the fact it's a publicly posted database
+3)Each column has a unique name - Yes, there are no repeating columns
+4)The order in which data is stored does not matter - Yes, order has no meaning or effect on the database
+
+The only problem we have with 1NF is the fact that rows do not have any unique identifiers, a Patron_ID, which is why we need to assign this ourselves. See below -
+
+ALTER TABLE sfpldata
+ADD COLUMN patron_id INT AUTO_INCREMENT PRIMARY KEY FIRST;
+
+And there we go, 1NF is now complete, let's move onto 2NF
+
+---------------------------------------------------------
+
+Second Normalization Form: 
+For 2NF, we actually don't have to make any changes now. 2NF requires that 1NF is fulfilled as well as ensuring there are no partial dependencies. Since we created a single column primary key for every column to depend on,
+2NF was automatically fulfilled when we fulfilled 1NF. So let's move on to 3NF, the one where we need the biggest changes.
+
+---------------------------------------------------------
+
+Third Normalization Form: 
+For 3NF, it requires that 2NF is fulfilled as well as having no transitive dependencies, i.e. dependencies on non-key column. Unfortunately, our table as is does not meet this requirement. 
+The roots of our problems here come from these six,
+
+Determinant -> Dependent
+Patron Type Code | Patron Type Definition
+Home Library Code | Home Library Definition
+Notification Preference Code | Notification Code Definition
+
+To fix this, we need to split it into four tables, you can name them however you want but for ease of remembering I'll just name them -
+
+1) sfpldata
+2) patron_type
+3) library
+4) notification
+
+We'll just extract the data we need from sfpldata, so let's begin with patron_type.
+
+patron_type -
+For the patron_type table, we can set the primary key to patron_type_code and have the dependent column be patron_type_definition.
+
+CREATE TABLE patron_type (
+	patron_type_code INT PRIMARY KEY,
+    patron_type_definition VARCHAR(200) NOT NULL
+);
+
+With the table created we can go on to inserting the columns we need from sfpldata into patron.
+
+INSERT IGNORE INTO patron_type (patron_type_code, patron_type_definition)
+SELECT DISTINCT `Patron Type Code
+patron_type_code`, `Patron Type Definition`                              -- There's an enter between Patron Type Code and patron_type_code for some reason so the format looks wonky
+FROM sfpldata;
+
+Now that we have the necessary columns inserted for patron_type, let's move on to library
+
+library -
+For the library table we will need library_code as the primary key and library_definition as the dependent column.
+
+CREATE TABLE library (
+  library_code VARCHAR(10) PRIMARY KEY,
+    library_definition VARCHAR(100) NOT NULL
+);
+
+Then we'll insert the columns from sfpldata
+
+INSERT IGNORE INTO library (library_code, library_definition)
+SELECT DISTINCT `Home Library Code
+home_library_code`, `Home Library Definition`
+FROM sfpldata
+
+Now let's go on to the last one, notification
+
+notification - 
+For the notification table we'll need notification_type as the primary key and notificaiton_code as the dependent column.
+
+CREATE TABLE notification (
+	notification_code VARCHAR(5) PRIMARY KEY,
+    notification_definition VARCHAR(50) NOT NULL
+);
+
+Now let's complete the insert
+
+INSERT IGNORE INTO notification (notification_code, notification_definition)
+SELECT DISTINCT `Notification Preference Code
+notification_medium_code`, `Notification Code Definition`
+FROM sfpldata
+
+And with that, we're done with the creation of the seperate tables, all we need to do now is to drop the redundant columns in sfpldata
+
+ALTER TABLE sfpldata
+DROP COLUMN `Patron Type Definition`,
+DROP COLUMN `Home Library Definition`,
+DROP COLUMN `Notification Code Definition`
+
+And finally, let's link the foreign keys (Asked Gemini to look over my documentation and suggest an improvement and this is what it gave back)
+
+ALTER TABLE sfpldata
+MODIFY COLUMN `Home Library Code
+home_library_code` VARCHAR(10),
+MODIFY COLUMN `Notification Preference Code
+notification_medium_code` VARCHAR(5),
+ADD FOREIGN KEY (`Patron Type Code
+patron_type_code`) REFERENCES patron_type(patron_type_code),
+ADD FOREIGN KEY (`Home Library Code
+home_library_code`) REFERENCES library(library_code),
+ADD FOREIGN KEY (`Notification Preference Code
+notification_medium_code`) REFERENCES notification(notification_code);
+
+And with that, our table now meets normalization standards!
