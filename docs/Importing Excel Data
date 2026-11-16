@@ -1,0 +1,18 @@
+Initial Import:
+First, save the excel spreadsheet as a CSV (Comma Deliniated), not CSV UTF-8, important distinction for proper importing formatting. Create a new schema, then right click the table on the side bar and press the implementation wizard and select the CSV. 
+
+Inside Import Wizard:
+This is extremely important, during the import you will arrive at a configure import settings screen, make sure to press the wrench and change the field separator to comma. After this you're free to complete the import process.
+
+During Import: (Asked Gemini AI how to speed up import)
+The actual import through the wizard would take a few hours, however I found a method that speeds this up. First, give it a moment to import a few entries to ensure the table is properly formatted, then you can cancel it. 
+Once canceled, you can use this bulk import query to instantly import everything into it's proper rows and columns. 
+
+LOAD DATA LOCAL INFILE '(insert csv filepath)'
+INTO TABLE (insert name of created table)
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS;
+
+The reason running the wizard first is mandatory is so it handles the table creation, making and assigning the rows, columns, and attributes for you. It's just a faster method than doing it manually.
