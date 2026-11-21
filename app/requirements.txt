@@ -1,0 +1,1 @@
+You'll need mysql-connector-python to recreate this.
