@@ -1,0 +1,6 @@
+Importing SFPL Data:
+Instead of importing from excel raw, we'll instead run a script with the pymongo extension to import the normalized data we set up in MySQL.
+
+Install MongoDB and create a new connection. Once done, refer to the script MySQL to MongoDB.
+
+Once ran, you will see the database appear in the connection, we have successfully transferred the normalized data into MongoDB!
